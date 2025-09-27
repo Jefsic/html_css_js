@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Taboada do Isaac! - Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #fdfbfb, #ebedee);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+      min-height: 100vh;
+      margin: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    h1 { 
+      margin-bottom: 10px; 
+      font-size: 1.8rem;
+      text-align: center;
+    }
+    .checkbox-group { 
+      margin: 5px 0; 
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0 15px;
+    }
+    .checkbox-group label { 
+      margin: 5px 10px; 
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    .question { 
+      font-size: 2.2rem;
+      font-weight: bold;
+      margin: 15px 0; 
+      text-align: center;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .options {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 10px 0;
+    }
+    .option {
+      padding: 15px;
+      font-size: 1.3rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      min-width: 70px;
+      text-align: center;
+      transition: 0.3s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .option:hover, .option:active { background-color: #2980b9; }
+    .disabled { background-color: #ccc !important; cursor: not-allowed; }
+    .score-textarea {
+      margin-top: 15px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: 2px solid #2c3e50;
+      border-radius: 8px;
+      padding: 8px;
+      background-color: #fefefe;
+      resize: none;
+      width: 180px;
+      text-align: center;
+    }
+    .history-textarea {
+      margin-top: 15px;
+      font-size: 1rem;
+      border: 2px solid #2c3e50;
+      border-radius: 8px;
+      padding: 8px;
+      background-color: #fefefe;
+      resize: none;
+      width: 250px;
+      height: 80px;
+      text-align: left;
+    }
+    .timer {
+      font-size: 1.2rem;
+      color: #e74c3c;
+      margin-top: 10px;
+    }
+    #restartBtn {
+      display: none;
+      margin-top: 15px;
+      padding: 12px 25px;
+      font-size: 1rem;
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #endBtn {
+      margin-top: 15px;
+      padding: 12px 25px;
+      font-size: 1rem;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .correct-message {
+      font-weight: bold;
+      color: #007BFF;
+      font-size: 1.8rem;
+      text-align: center;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Taboada do Isaac!</h1>
+  
+  <!-- Divisão dos checkboxes em 2 grupos -->
+  <div class="checkbox-group">
+    <label><input type="checkbox" value="multiplicação" checked> Multiplicação</label>
+    <label><input type="checkbox" value="adição"> Adição</label>
+  </div>
+  <div class="checkbox-group">
+    <label><input type="checkbox" value="subtração"> Subtração</label>
+    <label><input type="checkbox" value="divisão"> Divisão</label>
+  </div>
+
+  <textarea class="history-textarea" id="history-textarea" readonly>Histórico de Pontuações:\n</textarea>
+  <div class="question" id="question"></div>
+  <div class="options" id="options-container"></div>
+  <textarea class="score-textarea" id="score-textarea" readonly>Pontuação: 0</textarea>
+  <div class="timer" id="timer">00:01:00</div>
+  <button id="restartBtn" onclick="startGame()">Reiniciar</button>
+  <button id="endBtn" onclick="encerrarQuiz()">Encerrar</button>
+
+  <script>
+    let correctAnswer, score = 0, timeLeft = 60, timerInterval;
+    let currentOperation = '';
+    const mensagensAcerto = [
+      "Top", "Resposta correta!", "Valeu!", "Você por acaso é um gênio?",
+      "Isso aí!!", "Tô gostando de ver!", "Top demais!", "Que que é isso hein?", 
+      "Arrebentando!", "Tá de brincadeira? Bom demais!", "Sou seu fã agora!"
+    ];
+
+    const questionEl = document.getElementById('question');
+    const optionsContainer = document.getElementById('options-container');
+    const scoreTextarea = document.getElementById('score-textarea');
+    const historyTextarea = document.getElementById('history-textarea');
+    const timerEl = document.getElementById('timer');
+    const restartBtn = document.getElementById('restartBtn');
+    const endBtn = document.getElementById('endBtn');
+
+    function encerrarQuiz() {
+      if (confirm('Deseja realmente encerrar o quiz? Sua pontuação será salva.')) {
+        salvarPontuacao();
+        window.close(); // Fecha a janela/tab
+        // Alternativa para navegadores que bloqueiam window.close():
+        // document.body.innerHTML = '<h1>Quiz encerrado!</h1><p>Sua pontuação foi salva.</p>';
+      }
+    }
+
+    function startGame() {
+      score = 0;
+      timeLeft = 60;
+      scoreTextarea.value = "Pontuação: 0";
+      clearInterval(timerInterval);
+      restartBtn.style.display = "none";
+      updateTimerDisplay();
+      timerInterval = setInterval(updateTimer, 1000);
+      generateQuestion();
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      updateTimerDisplay();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        questionEl.textContent = "Tempo esgotado!";
+        optionsContainer.innerHTML = "";
+        salvarPontuacao();
+        carregarHistorico();
+        restartBtn.style.display = "inline-block";
+      }
+    }
+
+    function updateTimerDisplay() {
+      let minutes = Math.floor(timeLeft / 60);
+      let seconds = timeLeft % 60;
+      timerEl.textContent = `00:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function generateQuestion() {
+      const selectedOps = [...document.querySelectorAll('.checkbox-group input:checked')].map(cb => cb.value);
+      if (selectedOps.length === 0) {
+        alert('Selecione pelo menos uma operação.');
+        return;
+      }
+
+      const op = selectedOps[Math.floor(Math.random() * selectedOps.length)];
+      let num1 = Math.floor(Math.random() * 10) + 1;
+      let num2 = Math.floor(Math.random() * 10) + 1;
+
+      if (op === 'divisão') {
+        num1 = num1 * num2;
+        correctAnswer = num1 / num2;
+      } else if (op === 'multiplicação') {
+        correctAnswer = num1 * num2;
+      } else if (op === 'adição') {
+        correctAnswer = num1 + num2;
+      } else if (op === 'subtração') {
+        if (num2 > num1) [num1, num2] = [num2, num1];
+        correctAnswer = num1 - num2;
+      }
+
+      currentOperation = `${num1} ${getOperatorSymbol(op)} ${num2} = ?`;
+      questionEl.textContent = currentOperation;
+      generateOptions(correctAnswer);
+    }
+
+    function getOperatorSymbol(op) {
+      switch (op) {
+        case 'multiplicação': return '×';
+        case 'adição': return '+';
+        case 'subtração': return '−';
+        case 'divisão': return '÷';
+      }
+    }
+
+    function generateOptions(correct) {
+      let options = new Set();
+      options.add(correct);
+      while (options.size < 3) {
+        const variation = Math.floor(Math.random() * 10) - 5;
+        const fake = correct + variation;
+        if (fake !== correct && fake >= 0) options.add(fake);
+      }
+
+      const shuffled = Array.from(options).sort(() => Math.random() - 0.5);
+      optionsContainer.innerHTML = "";
+      shuffled.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.classList.add("option");
+        btn.textContent = opt;
+        btn.onclick = () => handleAnswer(opt, btn);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(selected, button) {
+      const buttons = document.querySelectorAll(".option");
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.classList.add("disabled");
+      });
+
+      if (selected === correctAnswer) {
+        score++;
+        scoreTextarea.value = `Pontuação: ${score}`;
+        const msg = mensagensAcerto[Math.floor(Math.random() * mensagensAcerto.length)];
+        questionEl.textContent = `${currentOperation.replace("?", correctAnswer)}`;
+        optionsContainer.innerHTML = `<div class='correct-message'>${msg}</div>`;
+        setTimeout(generateQuestion, 1000);
+      } else {
+        questionEl.textContent = "Resposta incorreta!";
+        button.classList.add("disabled");
+        setTimeout(generateQuestion, 1000);
+      }
+    }
+
+    function salvarPontuacao() {
+      const dataAtual = new Date();
+      const dia = String(dataAtual.getDate()).padStart(2, '0');
+      const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+      const ano = dataAtual.getFullYear();
+      const dataFormatada = `${dia}/${mes}/${ano}`;
+      
+      const pontuacao = {
+        data: dataFormatada,
+        pontos: score
+      };
+      
+      let historico = obterHistorico();
+      historico.push(pontuacao);
+      
+      if (historico.length > 3) {
+        historico = historico.slice(historico.length - 3);
+      }
+      
+      const dataExpiracao = new Date();
+      dataExpiracao.setTime(dataExpiracao.getTime() + (30 * 24 * 60 * 60 * 1000));
+      document.cookie = `historicoTabuada=${JSON.stringify(historico)}; expires=${dataExpiracao.toUTCString()}; path=/`;
+    }
+
+    function obterHistorico() {
+      const cookies = document.cookie.split('; ');
+      const cookieHistorico = cookies.find(cookie => cookie.startsWith('historicoTabuada='));
+      
+      if (cookieHistorico) {
+        const valorCookie = decodeURIComponent(cookieHistorico.split('=')[1]);
+        try {
+          return JSON.parse(valorCookie) || [];
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    }
+
+    function carregarHistorico() {
+      const historico = obterHistorico();
+      
+      if (historico.length > 0) {
+        let textoHistorico = "Histórico de Pontuações:\n";
+        historico.forEach(item => {
+          textoHistorico += `Em ${item.data}: ${item.pontos} pontos\n`;
+        });
+        historyTextarea.value = textoHistorico;
+      } else {
+        historyTextarea.value = "Histórico de Pontuações:\nNenhum registro ainda";
+      }
+    }
+
+    window.onload = function() {
+      carregarHistorico();
+      startGame();
+    };
+  </script>
+</body>
+</html>

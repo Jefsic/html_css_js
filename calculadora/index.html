@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- EMBED COD: incorpora elementos de um site externo no seu site-->
+    <script src="https://kit.fontawesome.com/9028012d7f.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <!-- DIV que engloba todo o projeto -->
+    <div class="conteudo"></div>
+    <!-- DIV que contém o visor -->
+    <div class="calculator">
+        <!-- Esse P é o visor da calculadora -->
+        <p class="result" id="resultado"></p>
+
+        <table>
+            <!-- tabela que vai conter todas as teclas da calculadora -->
+            <!-- primeira linha -->
+            <tr>
+                <!-- tres colunas da primeira linha -->
+                <td><button class="btn ac" style="width: 106px;" onclick='clean()'>AC</button></td>
+                <td><button class="btn neg"><i class="fa-solid fa-delete-left" onclick='backspace()'></i></button>
+                </td>
+                <td> <button class="btn especial"><i class="fa-solid fa-divide" onclick="insert('/')"></i></button></td>
+            </tr>
+
+            <tr>
+                <td><button class="btn " onclick="insert('7')">7</button></td>
+                <td><button class="btn " onclick="insert('8')">8</button></td>
+                <td><button class="btn " onclick="insert('9')">9</button></td>
+                <td><button class="btn especial" onclick="insert('*')">X</button></td>
+            </tr>
+
+            <tr>
+                <td><button class="btn " onclick="insert('4')">4</button></td>
+                <td><button class="btn " onclick="insert('5')">5</button></td>
+                <td><button class="btn " onclick="insert('6')">6</button></td>
+                <td><button class="btn especial" onclick="insert('-')">-</button></td>
+            </tr>
+
+            <tr>
+                <td><button class="btn " onclick="insert('1')">1</button></td>
+                <td><button class="btn " onclick="insert('2')">2</button></td>
+                <td><button class="btn " onclick="insert('3')">3</button></td>
+                <td><button class="btn especial" onclick="insert('+')">+</button></td>
+            </tr>
+            <tr>
+                <td><button class="btn " onclick="insert('0')">0</button></td>
+                <td><button class="btn " onclick="insert('.')">.</button></td>
+                <td><button class="btn igual" style="width: 106px;" onclick="confirma()">=</button></td>
+            </tr>
+        </table>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+
+</html>
