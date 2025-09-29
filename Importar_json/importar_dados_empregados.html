@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Importar Dados JSON</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Importar Dados dos Empregados</h1>
+  <button onclick="importarDados()">Importar dados do JSON</button>
+  <table id="tabela-json">
+    <thead>
+      <tr>
+        <th>CNPJ Empregador</th>
+        <th>CPF Empregado</th>
+        <th>Documento Identidade</th>
+        <th>Órgão Expeditor</th>
+        <th>UF</th>
+        <th>Data Emissão</th>
+        <th>Prazo Validade</th>
+        <th>DDD Celular</th>
+        <th>Número Celular</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <script>
+    function importarDados() {
+      //o ./ antes do nome do arquivo indica que está na mesma pasta do html
+      fetch('./CT_SALARIO-CNPJ-18715425000142-15-09-2025.json')
+        .then(response => response.json())
+        .then(dados => {
+          const tbody = document.querySelector("#tabela-json tbody");
+          tbody.innerHTML = "";
+          dados.forEach(item => {
+            const row = document.createElement("tr");
+            Object.values(item).forEach(valor => {
+              const cell = document.createElement("td");
+              cell.textContent = valor;
+              row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+          });
+        })
+        .catch(error => {
+          alert("Erro ao importar o arquivo JSON: " + error);
+        });
+    }
+  </script>
+</body>
+</html>
